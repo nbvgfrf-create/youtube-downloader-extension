@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube Downloader</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="ytd-helper-popup">
+  <div id="toast" class="ytd-helper-popup__toast" hidden></div>
+
+  <main class="ytd-helper-popup__shell">
+    <p class="ytd-helper-popup__eyebrow">Browser Extension</p>
+    <h1 class="ytd-helper-popup__title">Скачать</h1>
+    <p class="ytd-helper-popup__subtitle">Popup показывает доступные форматы и общий прогресс всех загрузок helper, даже если исходная вкладка уже закрыта.</p>
+
+    <section class="ytd-helper-popup__card">
+      <div class="ytd-helper-popup__toolbar">
+        <button id="refreshButton" class="ytd-helper-popup__button ghost" type="button">Обновить</button>
+        <button id="settingsButton" class="ytd-helper-popup__button ghost" type="button">Настройки</button>
+      </div>
+
+      <div id="helperState" class="ytd-helper-popup__helper">Проверяем локальное приложение...</div>
+
+      <div class="ytd-helper-popup__downloads-head">
+        <strong>Текущие загрузки</strong>
+        <span id="downloadsHint" class="ytd-helper-popup__downloads-hint">Пока пусто</span>
+      </div>
+      <div id="downloads" class="ytd-helper-popup__downloads"></div>
+
+      <div id="videoMeta" class="ytd-helper-popup__meta">Ищем активное видео...</div>
+      <div id="options" class="ytd-helper-popup__options"></div>
+      <div id="status" class="ytd-helper-popup__status">Ожидание</div>
+    </section>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

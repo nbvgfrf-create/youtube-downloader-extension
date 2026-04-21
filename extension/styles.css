@@ -1,0 +1,316 @@
+.ytd-helper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 10px;
+  flex-wrap: wrap;
+}
+
+.ytd-helper--block {
+  margin: 12px 0 0;
+}
+
+.ytd-helper--floating {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 10000;
+  margin: 0;
+}
+
+.ytd-helper__button,
+.ytd-helper__option,
+.ytd-helper-popup__button,
+.ytd-helper-popup__option {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+}
+
+.ytd-helper__button:disabled,
+.ytd-helper__option:disabled,
+.ytd-helper-popup__button:disabled,
+.ytd-helper-popup__option:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.ytd-helper__button,
+.ytd-helper-popup__button.primary {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #cb5b2d, #f28d35);
+  color: #fff7ef;
+  font-weight: 700;
+}
+
+.ytd-helper__button--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f5f5;
+}
+
+.ytd-helper__button:hover,
+.ytd-helper__option:hover,
+.ytd-helper-popup__button:hover,
+.ytd-helper-popup__option:hover {
+  transform: translateY(-1px);
+}
+
+.ytd-helper__panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 9999;
+  width: 320px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(20, 23, 19, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+  color: #f8f5ef;
+}
+
+.ytd-helper--floating .ytd-helper__panel {
+  left: auto;
+  right: 0;
+}
+
+.ytd-helper__header {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ytd-helper__options,
+.ytd-helper-popup__options,
+.ytd-helper-popup__downloads {
+  display: grid;
+  gap: 8px;
+}
+
+.ytd-helper__option,
+.ytd-helper-popup__option {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+.ytd-helper-popup__option {
+  background: rgba(23, 33, 26, 0.08);
+}
+
+.ytd-helper-popup__option[data-busy="true"] {
+  background: rgba(203, 91, 45, 0.14);
+}
+
+.ytd-helper__status,
+.ytd-helper-popup__status {
+  width: 100%;
+  font-size: 13px;
+  color: #d8d7d1;
+}
+
+.ytd-helper__status {
+  margin-top: 4px;
+}
+
+.ytd-helper__status[data-state="error"],
+.ytd-helper-popup__status[data-state="error"] {
+  color: #ffb2a5;
+}
+
+.ytd-helper__status[data-state="success"],
+.ytd-helper-popup__status[data-state="success"] {
+  color: #a9f0bc;
+}
+
+.ytd-helper__toast,
+.ytd-helper-popup__toast {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  z-index: 10001;
+  max-width: 320px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(23, 33, 26, 0.94);
+  color: #fffdf9;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  line-height: 1.4;
+  transform: translateY(-100%);
+}
+
+.ytd-helper__toast[data-kind="success"],
+.ytd-helper-popup__toast[data-kind="ok"] {
+  background: rgba(26, 110, 58, 0.96);
+}
+
+.ytd-helper__toast[data-kind="warn"],
+.ytd-helper-popup__toast[data-kind="warn"] {
+  background: rgba(176, 92, 24, 0.96);
+}
+
+.ytd-helper__toast[data-kind="error"],
+.ytd-helper-popup__toast[data-kind="error"] {
+  background: rgba(155, 34, 48, 0.96);
+}
+
+body.ytd-helper-popup {
+  margin: 0;
+  width: 380px;
+  min-height: 520px;
+  font-family: "Segoe UI", sans-serif;
+  color: #17211a;
+  background:
+    radial-gradient(circle at top left, rgba(203, 91, 45, 0.18), transparent 30%),
+    linear-gradient(160deg, #fff7ef 0%, #eef1e6 100%);
+}
+
+.ytd-helper-popup__shell {
+  position: relative;
+  padding: 18px;
+}
+
+.ytd-helper-popup__eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #9a3d17;
+}
+
+.ytd-helper-popup__title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.ytd-helper-popup__subtitle {
+  margin: 10px 0 0;
+  color: #5b6758;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ytd-helper-popup__card {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 252, 245, 0.94);
+  border: 1px solid rgba(23, 33, 26, 0.1);
+  box-shadow: 0 18px 40px rgba(23, 33, 26, 0.08);
+}
+
+.ytd-helper-popup__toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ytd-helper-popup__meta {
+  margin: 16px 0 10px;
+  font-size: 13px;
+  color: #5b6758;
+}
+
+.ytd-helper-popup__helper {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(23, 33, 26, 0.08);
+  color: #17211a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ytd-helper-popup__helper[data-state="error"] {
+  background: rgba(176, 42, 55, 0.12);
+  color: #9b2230;
+}
+
+.ytd-helper-popup__helper[data-state="success"] {
+  background: rgba(30, 126, 52, 0.12);
+  color: #1e7e34;
+}
+
+.ytd-helper-popup__downloads-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 10px;
+  font-size: 12px;
+}
+
+.ytd-helper-popup__downloads-hint {
+  color: #6b7869;
+}
+
+.ytd-helper-popup__download {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(23, 33, 26, 0.06);
+}
+
+.ytd-helper-popup__download[data-state="success"] {
+  background: rgba(30, 126, 52, 0.1);
+}
+
+.ytd-helper-popup__download[data-state="error"] {
+  background: rgba(176, 42, 55, 0.12);
+}
+
+.ytd-helper-popup__download-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #17211a;
+}
+
+.ytd-helper-popup__download-meta,
+.ytd-helper-popup__download-status {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #5b6758;
+}
+
+.ytd-helper-popup__progress {
+  overflow: hidden;
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(23, 33, 26, 0.1);
+}
+
+.ytd-helper-popup__progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #cb5b2d, #f28d35);
+  transition: width 180ms ease;
+}
+
+.ytd-helper-popup__status {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 33, 26, 0.12);
+}
+
+.ytd-helper-popup__button.ghost {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(23, 33, 26, 0.08);
+  color: #17211a;
+}
+
+.ytd-helper-popup__toast {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  max-width: none;
+  transform: none;
+}

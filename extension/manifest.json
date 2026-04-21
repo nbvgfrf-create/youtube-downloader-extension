@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Downloader Helper",
+  "version": "0.1.0",
+  "description": "Кнопка скачивания на YouTube с локальным Python helper-приложением.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "YouTube Downloader",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "styles.css"
+      ],
+      "matches": [
+        "https://www.youtube.com/*"
+      ]
+    }
+  ]
+}
