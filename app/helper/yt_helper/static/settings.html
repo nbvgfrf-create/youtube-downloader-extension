@@ -13,16 +13,16 @@
     <section class="hero">
       <p class="eyebrow">Local Helper</p>
       <h1>YouTube Downloader</h1>
-      <p class="subtitle">Фоновое приложение для расширения: получение форматов, очередь загрузок, cookies, автозапуск и сохранение видео без отдельной установки ffmpeg.</p>
+      <p id="heroSubtitle" class="subtitle"></p>
     </section>
 
     <section class="card">
       <div class="card-head">
         <div>
-          <h2>Состояние</h2>
-          <p class="subhead">Быстрая проверка helper и встроенных зависимостей.</p>
+          <h2 id="healthTitle"></h2>
+          <p id="healthSubtitle" class="subhead"></p>
         </div>
-        <button id="refreshButton" class="ghost">Обновить</button>
+        <button id="refreshButton" class="ghost" type="button"></button>
       </div>
       <div id="health" class="health-grid"></div>
     </section>
@@ -30,55 +30,63 @@
     <section class="card">
       <div class="card-head">
         <div>
-          <h2>Настройки</h2>
-          <p class="subhead">Изменения сохраняются локально и применяются для следующих загрузок.</p>
+          <h2 id="settingsTitle"></h2>
+          <p id="settingsSubtitle" class="subhead"></p>
         </div>
-        <span id="status" class="status">Готово</span>
+        <span id="status" class="status"></span>
       </div>
 
       <form id="settingsForm" class="settings-form">
-        <label>
-          <span>Папка сохранения</span>
-          <input id="saveDirectory" name="save_directory" type="text" placeholder="C:\Users\...\Downloads\YouTube Downloader">
-          <small>Итоговые видео и аудио сохраняются сюда.</small>
-        </label>
-
         <div class="split">
           <label>
-            <span>Что делать по кнопке “Скачать” под видео</span>
-            <select id="defaultMode" name="default_mode">
-              <option value="best">Скачать лучшее доступное</option>
-              <option value="video">Скачать видео со звуком</option>
-              <option value="audio">Скачать только аудио</option>
-            </select>
-            <small>Эта настройка используется для быстрой кнопки прямо под видео.</small>
+            <span id="languageLabel"></span>
+            <select id="language" name="language"></select>
+            <small id="languageHelp"></small>
           </label>
 
           <label>
-            <span>Формат аудио по умолчанию</span>
+            <span id="saveDirectoryLabel"></span>
+            <input id="saveDirectory" name="save_directory" type="text" placeholder="C:\Users\...\Downloads\YouTube Downloader">
+            <small id="saveDirectoryHelp"></small>
+          </label>
+        </div>
+
+        <div class="split">
+          <label>
+            <span id="defaultModeLabel"></span>
+            <select id="defaultMode" name="default_mode">
+              <option value="best" data-i18n="default_mode_best"></option>
+              <option value="video" data-i18n="default_mode_video"></option>
+              <option value="audio" data-i18n="default_mode_audio"></option>
+            </select>
+            <small id="defaultModeHelp"></small>
+          </label>
+
+          <label>
+            <span id="preferredAudioFormatLabel"></span>
             <select id="preferredAudioFormat" name="preferred_audio_format">
               <option value="mp3">MP3</option>
               <option value="m4a">M4A</option>
               <option value="opus">Opus</option>
             </select>
-            <small>Нужно только для режима “только аудио”.</small>
+            <small id="preferredAudioFormatHelp"></small>
           </label>
         </div>
 
         <label>
-          <span>Источник cookies</span>
+          <span id="cookieSourceLabel"></span>
           <select id="cookieSource" name="cookie_source">
-            <option value="auto">Авто: сначала без cookies, затем поддерживаемые браузеры</option>
-            <option value="browser">Брать cookies из браузера</option>
-            <option value="file">Использовать cookies.txt</option>
-            <option value="none">Никогда не использовать cookies</option>
+            <option value="auto" data-i18n="cookie_source_auto"></option>
+            <option value="browser" data-i18n="cookie_source_browser"></option>
+            <option value="file" data-i18n="cookie_source_file"></option>
+            <option value="none" data-i18n="cookie_source_none"></option>
           </select>
-          <small>Нужно для видео, где YouTube просит авторизацию, подтверждение возраста или bot-check.</small>
+          <small id="cookieSourceHelp"></small>
         </label>
 
         <div id="browserCookieFields" class="split">
           <label>
-            <span>Браузер для чтения cookies</span>
+            <span id="cookieBrowserLabel"></span>
             <select id="cookieBrowser" name="cookie_browser">
               <option value="edge">Microsoft Edge</option>
               <option value="chrome">Google Chrome</option>
@@ -88,226 +96,61 @@
               <option value="chromium">Chromium</option>
               <option value="vivaldi">Vivaldi</option>
             </select>
-            <small>Используется только если выше выбран режим “Брать cookies из браузера”. Яндекс Браузер текущий yt-dlp напрямую не поддерживает, для него лучше использовать cookies.txt.</small>
+            <small id="cookieBrowserHelp"></small>
           </label>
 
           <label>
-            <span>Профиль браузера</span>
-            <input id="cookieBrowserProfile" name="cookie_browser_profile" type="text" placeholder="Например: Default">
-            <small>Оставь пустым, если не знаешь точное имя профиля.</small>
+            <span id="cookieBrowserProfileLabel"></span>
+            <input id="cookieBrowserProfile" name="cookie_browser_profile" type="text" placeholder="Default">
+            <small id="cookieBrowserProfileHelp"></small>
           </label>
         </div>
 
         <label id="cookieFileField">
-          <span>Путь к cookies.txt</span>
+          <span id="cookieFilePathLabel"></span>
           <input id="cookieFilePath" name="cookie_file_path" type="text" placeholder="C:\Users\...\cookies.txt">
-          <small>Используй этот режим, если YouTube требует авторизацию, а browser-cookies не читаются.</small>
+          <small id="cookieFilePathHelp"></small>
         </label>
 
         <div class="note">
-          <strong>ffmpeg уже встроен.</strong>
-          <span>Отдельно ставить ffmpeg в систему не нужно. Если helper не сможет подготовить встроенный ffmpeg, он покажет понятную ошибку и попросит перезапустить bootstrap или пересобрать приложение.</span>
+          <strong id="ffmpegTitle"></strong>
+          <span id="ffmpegHelp"></span>
         </div>
 
         <label class="checkbox">
           <input id="launchAtStartup" name="launch_at_startup" type="checkbox">
-          <span>Запускать helper автоматически при входе в Windows</span>
+          <span id="launchAtStartupLabel"></span>
         </label>
-        <p class="field-note">Если включено, кнопку “Скачать” можно использовать без ручного запуска helper каждый раз.</p>
+        <p id="launchAtStartupHelp" class="field-note"></p>
 
         <label class="checkbox">
           <input id="minimizeToTray" name="minimize_to_tray" type="checkbox">
-          <span>Держать helper в фоне в области уведомлений</span>
+          <span id="minimizeToTrayLabel"></span>
         </label>
-        <p class="field-note">У иконки возле часов будет меню: открыть настройки, папку загрузок и логи.</p>
+        <p id="minimizeToTrayHelp" class="field-note"></p>
 
         <label class="checkbox">
           <input id="closeToTray" name="close_to_tray" type="checkbox">
-          <span>При закрытии не выключать helper, а оставлять его в фоне</span>
+          <span id="closeToTrayLabel"></span>
         </label>
-        <p class="field-note">Полезно, если не хочешь случайно остановить загрузки.</p>
+        <p id="closeToTrayHelp" class="field-note"></p>
 
         <label class="checkbox">
           <input id="showCompletionNotifications" name="show_completion_notifications" type="checkbox">
-          <span>Показывать уведомление после завершения загрузки</span>
+          <span id="showCompletionNotificationsLabel"></span>
         </label>
-        <p class="field-note">Если выключить, статус всё равно останется виден в панели расширения.</p>
+        <p id="showCompletionNotificationsHelp" class="field-note"></p>
 
         <div class="actions">
-          <button id="saveButton" type="submit" class="primary">Сохранить</button>
-          <button type="button" id="openDownloadsButton" class="ghost">Открыть загрузки</button>
-          <button type="button" id="openLogsButton" class="ghost">Открыть логи</button>
+          <button id="saveButton" type="submit" class="primary"></button>
+          <button type="button" id="openDownloadsButton" class="ghost"></button>
+          <button type="button" id="openLogsButton" class="ghost"></button>
         </div>
       </form>
     </section>
   </main>
 
-  <script>
-    const toastNode = document.getElementById('toast');
-    const healthNode = document.getElementById('health');
-    const statusNode = document.getElementById('status');
-    const form = document.getElementById('settingsForm');
-    const saveButton = document.getElementById('saveButton');
-    const cookieSourceNode = document.getElementById('cookieSource');
-    const browserCookieFields = document.getElementById('browserCookieFields');
-    const cookieFileField = document.getElementById('cookieFileField');
-
-    async function jsonRequest(path, options = {}) {
-      const response = await fetch(path, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(payload.error || 'Не удалось выполнить запрос');
-      }
-      return payload;
-    }
-
-    function showToast(text, kind = 'ok') {
-      toastNode.hidden = false;
-      toastNode.textContent = text;
-      toastNode.dataset.kind = kind;
-      window.clearTimeout(showToast.timer);
-      showToast.timer = window.setTimeout(() => {
-        toastNode.hidden = true;
-      }, 3200);
-    }
-
-    function setStatus(text, kind = 'idle') {
-      statusNode.textContent = text;
-      statusNode.dataset.kind = kind;
-    }
-
-    function renderHealth(payload) {
-      const missing = payload.missing_dependencies?.length
-        ? payload.missing_dependencies.join(', ')
-        : 'встроены и готовы';
-      const details = payload.dependency_details || {};
-
-      healthNode.innerHTML = `
-        <article>
-          <span class="label">Helper</span>
-          <strong>${payload.ready ? 'активен' : 'недоступен'}</strong>
-        </article>
-        <article>
-          <span class="label">API</span>
-          <strong>${payload.host}:${payload.port}</strong>
-        </article>
-        <article>
-          <span class="label">Папка загрузки</span>
-          <strong>${payload.save_directory}</strong>
-        </article>
-        <article>
-          <span class="label">Зависимости</span>
-          <strong>${missing}</strong>
-        </article>
-        <article>
-          <span class="label">yt-dlp</span>
-          <strong>${details.yt_dlp || 'не найден'}</strong>
-        </article>
-        <article>
-          <span class="label">ffmpeg</span>
-          <strong>${details.ffmpeg || 'не подготовлен'}</strong>
-        </article>
-      `;
-    }
-
-    function syncCookieFields() {
-      const source = cookieSourceNode.value;
-      browserCookieFields.hidden = !(source === 'browser' || source === 'auto');
-      cookieFileField.hidden = source !== 'file';
-    }
-
-    function fillForm(settings) {
-      document.getElementById('saveDirectory').value = settings.save_directory || '';
-      document.getElementById('defaultMode').value = settings.default_mode || 'best';
-      document.getElementById('preferredAudioFormat').value = settings.preferred_audio_format || 'mp3';
-      document.getElementById('launchAtStartup').checked = Boolean(settings.launch_at_startup);
-      document.getElementById('minimizeToTray').checked = Boolean(settings.minimize_to_tray);
-      document.getElementById('closeToTray').checked = Boolean(settings.close_to_tray);
-      document.getElementById('showCompletionNotifications').checked = settings.show_completion_notifications !== false;
-      document.getElementById('cookieSource').value = settings.cookie_source || 'auto';
-      document.getElementById('cookieBrowser').value = settings.cookie_browser || 'edge';
-      document.getElementById('cookieBrowserProfile').value = settings.cookie_browser_profile || '';
-      document.getElementById('cookieFilePath').value = settings.cookie_file_path || '';
-      syncCookieFields();
-    }
-
-    async function load() {
-      setStatus('Обновляем...', 'busy');
-      try {
-        const [health, settings] = await Promise.all([
-          jsonRequest('/health'),
-          jsonRequest('/api/settings'),
-        ]);
-        renderHealth(health);
-        fillForm(settings);
-        setStatus('Готово', 'ok');
-      } catch (error) {
-        setStatus(error.message, 'error');
-        showToast(error.message, 'error');
-      }
-    }
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      setStatus('Сохраняем...', 'busy');
-      saveButton.disabled = true;
-
-      const payload = {
-        save_directory: document.getElementById('saveDirectory').value.trim(),
-        default_mode: document.getElementById('defaultMode').value,
-        preferred_audio_format: document.getElementById('preferredAudioFormat').value,
-        launch_at_startup: document.getElementById('launchAtStartup').checked,
-        minimize_to_tray: document.getElementById('minimizeToTray').checked,
-        close_to_tray: document.getElementById('closeToTray').checked,
-        show_completion_notifications: document.getElementById('showCompletionNotifications').checked,
-        cookie_source: document.getElementById('cookieSource').value,
-        cookie_browser: document.getElementById('cookieBrowser').value,
-        cookie_browser_profile: document.getElementById('cookieBrowserProfile').value.trim(),
-        cookie_file_path: document.getElementById('cookieFilePath').value.trim(),
-      };
-
-      try {
-        const result = await jsonRequest('/api/settings', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-        fillForm(result.settings);
-        await load();
-        setStatus(result.message || 'Настройки сохранены', 'ok');
-        showToast(result.message || 'Настройки сохранены');
-      } catch (error) {
-        setStatus(error.message, 'error');
-        showToast(error.message, 'error');
-      } finally {
-        saveButton.disabled = false;
-      }
-    });
-
-    document.getElementById('refreshButton').addEventListener('click', load);
-    cookieSourceNode.addEventListener('change', syncCookieFields);
-
-    document.getElementById('openDownloadsButton').addEventListener('click', async () => {
-      try {
-        const result = await jsonRequest('/api/actions/open-downloads', { method: 'POST', body: '{}' });
-        showToast(result.message || 'Папка загрузок открыта');
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
-    });
-
-    document.getElementById('openLogsButton').addEventListener('click', async () => {
-      try {
-        const result = await jsonRequest('/api/actions/open-logs', { method: 'POST', body: '{}' });
-        showToast(result.message || 'Папка логов открыта');
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
-    });
-
-    load();
-  </script>
+  <script src="/assets/settings-i18n.js"></script>
+  <script src="/assets/settings.js"></script>
 </body>
 </html>

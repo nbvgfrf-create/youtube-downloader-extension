@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "YouTube Downloader Helper",
   "version": "0.1.0",
-  "description": "Кнопка скачивания на YouTube с локальным Python helper-приложением.",
+  "description": "Download button for YouTube with a local Windows helper app.",
   "permissions": [
     "storage",
     "tabs",
@@ -26,6 +26,7 @@
         "https://www.youtube.com/*"
       ],
       "js": [
+        "i18n.js",
         "content.js"
       ],
       "run_at": "document_idle"

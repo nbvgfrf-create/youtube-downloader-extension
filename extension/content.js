@@ -1,6 +1,17 @@
 const ROOT_ID = "yt-helper-download-root";
 const STYLE_ID = "yt-helper-style-link";
 
+let currentLocale = "ru";
+
+function t(key, vars = {}) {
+  return YTDI18N.formatMessage(currentLocale, key, vars);
+}
+
+async function loadUiLanguage() {
+  const stored = await chrome.storage.local.get("uiLanguage");
+  currentLocale = YTDI18N.normalizeLocale(stored.uiLanguage || "ru");
+}
+
 function isWatchPage() {
   return location.pathname === "/watch" && new URL(location.href).searchParams.has("v");
 }
@@ -63,7 +74,7 @@ function sendMessage(message) {
       }
 
       if (!response?.ok) {
-        reject(new Error(response?.error || "Не удалось связаться с helper."));
+        reject(new Error(response?.error || t("helper_unreachable")));
         return;
       }
 
@@ -106,13 +117,13 @@ function createOptionButton(option, videoUrl, statusNode, onStart) {
 
 function formatJobMessage(job) {
   if (job.state === "completed") {
-    return "Готово";
+    return t("status_completed");
   }
   if (job.state === "failed") {
-    return job.message || "Ошибка";
+    return job.message || t("status_failed");
   }
   const progress = typeof job.progress === "number" ? ` ${job.progress.toFixed(1)}%` : "";
-  return `${job.message || "Скачивание"}${progress}`;
+  return `${job.message || t("status_downloading")}${progress}`;
 }
 
 function pollJob(jobId, statusNode) {
@@ -144,7 +155,7 @@ async function populatePanel(panel, videoUrl, statusNode, onStart) {
 
   const header = document.createElement("div");
   header.className = "ytd-helper__header";
-  header.textContent = "Получаем форматы...";
+  header.textContent = t("panel_loading");
   panel.appendChild(header);
 
   const optionsWrap = document.createElement("div");
@@ -157,14 +168,14 @@ async function populatePanel(panel, videoUrl, statusNode, onStart) {
       url: videoUrl,
     });
 
-    header.textContent = data.title || "Доступные форматы";
+    header.textContent = data.title || t("panel_formats");
     for (const option of data.options || []) {
       optionsWrap.appendChild(createOptionButton(option, videoUrl, statusNode, onStart));
     }
-    statusNode.textContent = "Можно выбрать качество";
+    statusNode.textContent = t("panel_choose");
     statusNode.dataset.state = "idle";
   } catch (error) {
-    header.textContent = "Ошибка helper";
+    header.textContent = t("panel_error");
     statusNode.textContent = error.message;
     statusNode.dataset.state = "error";
     panel.dataset.loadedFor = "";
@@ -187,11 +198,11 @@ function buildUi(videoUrl, variant) {
 
   const mainButton = document.createElement("button");
   mainButton.className = "ytd-helper__button";
-  mainButton.textContent = "Скачать";
+  mainButton.textContent = t("download_button");
 
   const menuButton = document.createElement("button");
   menuButton.className = "ytd-helper__button ytd-helper__button--secondary";
-  menuButton.textContent = "Качество";
+  menuButton.textContent = t("quality_button");
 
   const panel = document.createElement("div");
   panel.className = "ytd-helper__panel";
@@ -199,7 +210,7 @@ function buildUi(videoUrl, variant) {
 
   const statusNode = document.createElement("div");
   statusNode.className = "ytd-helper__status";
-  statusNode.textContent = "Ожидание";
+  statusNode.textContent = t("status_idle");
 
   function setBusyState(isBusy) {
     mainButton.disabled = isBusy;
@@ -212,8 +223,8 @@ function buildUi(videoUrl, variant) {
       : { type: "START_DEFAULT_DOWNLOAD", url: videoUrl };
 
     statusNode.textContent = option
-      ? `Запускаем ${option.label}...`
-      : "Запускаем загрузку по умолчанию...";
+      ? t("start_downloading", { label: option.label })
+      : t("start_default");
     statusNode.dataset.state = "busy";
     setBusyState(true);
     if (sourceButton) {
@@ -222,10 +233,11 @@ function buildUi(videoUrl, variant) {
 
     try {
       const job = await sendMessage(message);
-      const optionLabel = job.option_label || job.selected_option?.label || option?.label || "выбранный формат";
+      const optionLabel =
+        job.option_label || job.selected_option?.label || option?.label || t("selected_format");
       const toastText = job.already_exists
-        ? `Уже скачивается: ${optionLabel}`
-        : `Загрузка ${optionLabel} началась`;
+        ? t("already_downloading", { label: optionLabel })
+        : t("default_download_started", { label: optionLabel });
 
       statusNode.textContent = toastText;
       statusNode.dataset.state = job.already_exists ? "busy" : "success";
@@ -318,6 +330,15 @@ observer.observe(document.documentElement, {
   subtree: true,
 });
 
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes.uiLanguage) {
+    return;
+  }
+  currentLocale = YTDI18N.normalizeLocale(changes.uiLanguage.newValue || "ru");
+  document.getElementById(ROOT_ID)?.remove();
+  ensureUi();
+});
+
 document.addEventListener("yt-navigate-finish", ensureUi);
 window.addEventListener("popstate", ensureUi);
 window.setInterval(() => {
@@ -327,4 +348,6 @@ window.setInterval(() => {
   }
 }, 1000);
 
-ensureUi();
+loadUiLanguage().finally(() => {
+  ensureUi();
+});

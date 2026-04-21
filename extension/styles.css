@@ -239,6 +239,46 @@ body.ytd-helper-popup {
   color: #1e7e34;
 }
 
+.ytd-helper-popup__toggle {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(23, 33, 26, 0.06);
+}
+
+.ytd-helper-popup__toggle input {
+  margin-top: 2px;
+}
+
+.ytd-helper-popup__toggle span {
+  display: grid;
+  gap: 4px;
+}
+
+.ytd-helper-popup__toggle strong {
+  font-size: 13px;
+  color: #17211a;
+}
+
+.ytd-helper-popup__select {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(23, 33, 26, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #17211a;
+}
+
+.ytd-helper-popup__toggle small {
+  color: #5b6758;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .ytd-helper-popup__downloads-head {
   display: flex;
   align-items: center;

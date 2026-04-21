@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,29 +11,46 @@
 
   <main class="ytd-helper-popup__shell">
     <p class="ytd-helper-popup__eyebrow">Browser Extension</p>
-    <h1 class="ytd-helper-popup__title">Скачать</h1>
-    <p class="ytd-helper-popup__subtitle">Popup показывает доступные форматы и общий прогресс всех загрузок helper, даже если исходная вкладка уже закрыта.</p>
+    <h1 id="popupTitle" class="ytd-helper-popup__title">Download</h1>
+    <p id="popupSubtitle" class="ytd-helper-popup__subtitle"></p>
 
     <section class="ytd-helper-popup__card">
       <div class="ytd-helper-popup__toolbar">
-        <button id="refreshButton" class="ytd-helper-popup__button ghost" type="button">Обновить</button>
-        <button id="settingsButton" class="ytd-helper-popup__button ghost" type="button">Настройки</button>
+        <button id="refreshButton" class="ytd-helper-popup__button ghost" type="button"></button>
+        <button id="settingsButton" class="ytd-helper-popup__button ghost" type="button"></button>
       </div>
 
-      <div id="helperState" class="ytd-helper-popup__helper">Проверяем локальное приложение...</div>
+      <div id="helperState" class="ytd-helper-popup__helper"></div>
+
+      <label class="ytd-helper-popup__toggle">
+        <input id="autostartToggle" type="checkbox">
+        <span>
+          <strong id="autostartTitle"></strong>
+          <small id="autostartHint"></small>
+        </span>
+      </label>
+
+      <label class="ytd-helper-popup__toggle">
+        <span>
+          <strong id="languageTitle"></strong>
+          <small id="languageHint"></small>
+        </span>
+        <select id="languageSelect" class="ytd-helper-popup__select"></select>
+      </label>
 
       <div class="ytd-helper-popup__downloads-head">
-        <strong>Текущие загрузки</strong>
-        <span id="downloadsHint" class="ytd-helper-popup__downloads-hint">Пока пусто</span>
+        <strong id="downloadsTitle"></strong>
+        <span id="downloadsHint" class="ytd-helper-popup__downloads-hint"></span>
       </div>
       <div id="downloads" class="ytd-helper-popup__downloads"></div>
 
-      <div id="videoMeta" class="ytd-helper-popup__meta">Ищем активное видео...</div>
+      <div id="videoMeta" class="ytd-helper-popup__meta"></div>
       <div id="options" class="ytd-helper-popup__options"></div>
-      <div id="status" class="ytd-helper-popup__status">Ожидание</div>
+      <div id="status" class="ytd-helper-popup__status"></div>
     </section>
   </main>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

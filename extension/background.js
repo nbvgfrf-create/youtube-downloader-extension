@@ -1,3 +1,5 @@
+importScripts("i18n.js");
+
 const HELPER_BASE = "http://127.0.0.1:45719";
 const TRACKED_DOWNLOADS_KEY = "trackedDownloads";
 const REFRESH_INTERVAL_MS = 1500;
@@ -6,6 +8,15 @@ const NOTIFICATION_ICON = `data:image/svg+xml,${encodeURIComponent(
 )}`;
 
 let refreshTimer = null;
+
+async function getCurrentLocale() {
+  const data = await chrome.storage.local.get("uiLanguage");
+  return YTDI18N.normalizeLocale(data.uiLanguage || "ru");
+}
+
+async function t(key, vars = {}) {
+  return YTDI18N.formatMessage(await getCurrentLocale(), key, vars);
+}
 
 async function helperRequest(path, init = {}) {
   let response;
@@ -19,20 +30,37 @@ async function helperRequest(path, init = {}) {
       ...init,
     });
   } catch {
-    throw new Error(
-      "Локальное приложение не отвечает. Запусти run_helper.cmd или собранный YouTubeDownloaderHelper.exe."
-    );
+    throw new Error(await t("helper_unreachable"));
   }
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload.error || `Helper вернул ошибку ${response.status}`);
+    throw new Error(payload.error || `Helper returned error ${response.status}`);
   }
   return payload;
 }
 
 async function getHelperSettings() {
   return helperRequest("/api/settings");
+}
+
+async function updateHelperSettings(patch) {
+  const current = await getHelperSettings();
+  const next = await helperRequest("/api/settings", {
+    method: "POST",
+    body: JSON.stringify({
+      ...current,
+      ...patch,
+    }),
+  });
+
+  if (next?.settings?.language) {
+    await chrome.storage.local.set({
+      uiLanguage: YTDI18N.normalizeLocale(next.settings.language),
+    });
+  }
+
+  return next;
 }
 
 async function readTrackedDownloads() {
@@ -62,10 +90,10 @@ function upsertTrackedJob(jobs, job) {
   return next;
 }
 
-function pickDefaultOption(options, settings) {
+async function pickDefaultOption(options, settings) {
   const safeOptions = Array.isArray(options) ? options : [];
   if (!safeOptions.length) {
-    throw new Error("Helper не вернул ни одного доступного формата.");
+    throw new Error(await t("helper_no_formats"));
   }
 
   const defaultMode = String(settings?.default_mode || "best").toLowerCase();
@@ -99,10 +127,10 @@ async function createCompletionNotification(job, settings) {
     return;
   }
 
-  const title = job.title || "Загрузка завершена";
+  const title = job.title || (await t("helper_completed_title"));
   const message = job.file_path
-    ? `Файл сохранён: ${job.file_path}`
-    : `${job.option_label || "Формат"} готов.`;
+    ? await t("helper_completed_file", { path: job.file_path })
+    : await t("helper_completed_generic", { label: job.option_label || (await t("job_default_format")) });
 
   await chrome.notifications.create(`yt-helper-${job.job_id}`, {
     type: "basic",
@@ -152,7 +180,7 @@ async function refreshTrackedDownloads() {
       refreshedJobs.push({
         ...job,
         state: "failed",
-        message: error.message || "Не удалось обновить статус загрузки.",
+        message: error.message || (await t("helper_refresh_failed")),
         notified_completion: Boolean(job.notified_completion),
       });
       changed = true;
@@ -223,7 +251,7 @@ async function startDefaultDownload(url) {
     }),
     getHelperSettings(),
   ]);
-  const option = pickDefaultOption(formats.options, settings);
+  const option = await pickDefaultOption(formats.options, settings);
   const job = await startTrackedDownload(url, option, { title: formats.title });
   return {
     ...job,
@@ -239,7 +267,7 @@ async function openSettingsPage() {
 
 async function handleMessage(message) {
   if (!message?.type) {
-    throw new Error("Неизвестный тип сообщения расширения.");
+    throw new Error(await t("unknown_message_type"));
   }
 
   switch (message.type) {
@@ -263,27 +291,30 @@ async function handleMessage(message) {
       return openSettingsPage();
     case "GET_SETTINGS":
       return getHelperSettings();
+    case "UPDATE_SETTINGS":
+      return updateHelperSettings(message.patch || {});
     case "HEALTH":
       return helperRequest("/health");
     default:
-      throw new Error(`Расширение не поддерживает действие ${message.type}`);
+      throw new Error(await t("action_not_supported", { type: message.type }));
   }
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.set({
+chrome.runtime.onInstalled.addListener(async () => {
+  await chrome.storage.local.set({
     helperBase: HELPER_BASE,
     [TRACKED_DOWNLOADS_KEY]: [],
+    uiLanguage: "ru",
   });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message)
     .then((data) => sendResponse({ ok: true, data }))
-    .catch((error) => {
+    .catch(async (error) => {
       sendResponse({
         ok: false,
-        error: error?.message || "Локальное приложение недоступно.",
+        error: error?.message || (await t("helper_unreachable")),
       });
     });
 

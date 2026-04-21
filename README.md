@@ -1,211 +1,30 @@
-﻿# YouTube Downloader
+# YouTube Downloader
 
-Windows-приложение для скачивания видео с YouTube из браузера.
+Browser extension + local Windows helper for downloading YouTube videos with quality selection.
 
-Проект состоит из двух частей:
+## Documentation
 
-- **Browser Extension** — добавляет кнопку `Скачать` на страницу YouTube;
-- **Local Python Helper** — локальный фоновый сервис на Python, который получает доступные форматы, скачивает видео и при необходимости объединяет дорожки через встроенный `ffmpeg`.
+### For users
+- Russian: [README.user.ru.md](README.user.ru.md)
+- English: [README.user.en.md](README.user.en.md)
 
-## Возможности
+### For developers
+- Russian: [README.dev.ru.md](README.dev.ru.md)
+- English: [README.dev.en.md](README.dev.en.md)
 
-- кнопка `Скачать` под видео запускает загрузку по настройке по умолчанию;
-- кнопка `Качество` открывает выбор формата;
-- popup расширения показывает:
-  - доступные качества для текущего видео;
-  - текущие и недавние загрузки;
-  - прогресс скачивания и обработки;
-  - кнопку `Настройки`;
-- helper хранит очередь загрузок независимо от вкладки;
-- после завершения может показываться системное уведомление;
-- временные файлы helper складывает во внутренний temp-каталог и удаляет после работы;
-- для `720p`, `1080p` и выше видео и аудио скачиваются отдельно, затем объединяются;
-- если YouTube требует cookies, helper показывает понятную ошибку.
+## Quick summary
 
-## Как запустить
+- the browser extension adds a `Download` button on YouTube;
+- the local helper runs in the background and performs all downloads;
+- first run bootstraps Python dependencies automatically;
+- the UI supports Russian and English with a switch inside the extension popup;
+- the repository is meant to stay source-only, without generated binaries in git.
 
-### Вариант 1. Готовый `.exe`
-
-Если helper уже собран, запусти:
+## Project structure
 
 ```text
-app\helper\dist\YouTubeDownloaderHelper\YouTubeDownloaderHelper.exe
+app/          Python helper
+extension/    Browser extension
+docs/         Extra technical docs
+installer/    Installer template
 ```
-
-Это самый простой вариант:
-- без терминала;
-- без ручной установки `ffmpeg`;
-- helper работает в фоне через tray.
-
-### Вариант 2. Через скрипт запуска
-
-Если `.exe` ещё не собран, запусти:
-
-```text
-run_helper.cmd
-```
-
-или:
-
-```powershell
-.\run_helper.ps1
-```
-
-Скрипт:
-- создаёт `.venv`, если его ещё нет;
-- устанавливает зависимости;
-- запускает helper в фоне через `pythonw`.
-
-## Что нужно установить
-
-### Обязательно
-- **Python 3.11** — если запускаешь проект из исходников.
-
-### Не нужно устанавливать отдельно
-- `yt-dlp.exe`
-- `ffmpeg.exe`
-
-В проекте используется:
-- пакет `yt-dlp`;
-- пакет `imageio-ffmpeg`, который даёт встроенный `ffmpeg`.
-
-## Подключение расширения
-
-Расширение подключается как **unpacked extension**.
-
-### Chrome / Edge / Chromium / Яндекс Браузер
-1. Открой страницу расширений браузера.
-2. Включи режим разработчика.
-3. Нажми **Загрузить распакованное расширение**.
-4. Выбери папку:
-
-```text
-extension
-```
-
-После этого:
-1. запусти helper через `run_helper.cmd` или `.exe`;
-2. открой страницу YouTube-видео;
-3. обнови вкладку;
-4. под видео появится кнопка `Скачать`.
-
-## Как это работает
-
-### Под видео
-- `Скачать` — начинает загрузку по настройке по умолчанию;
-- `Качество` — открывает список доступных форматов.
-
-### В popup расширения
-- показываются активные и недавние загрузки;
-- отображается прогресс;
-- повторный клик по уже активному формату не создаёт дубликат.
-
-## Настройки helper
-
-Открываются из popup расширения по кнопке `Настройки`.
-
-### Основные переключатели
-- `Запускать helper автоматически при входе в Windows`  
-  Автозапуск после входа в систему.
-- `Держать helper в фоне в области уведомлений`  
-  Helper остаётся доступным через иконку возле часов.
-- `При закрытии не выключать helper, а оставлять его в фоне`  
-  Помогает случайно не остановить загрузки.
-- `Показывать уведомление после завершения загрузки`  
-  Включает системное уведомление после успешного завершения.
-
-### Cookies
-Поддерживаются режимы:
-- `Авто`
-- `Брать cookies из браузера`
-- `Использовать cookies.txt`
-- `Никогда не использовать cookies`
-
-### Важно про Яндекс Браузер
-Текущая версия `yt-dlp` не умеет напрямую читать cookies именно из Яндекс Браузера как отдельного браузера.
-
-В таком случае:
-- сначала попробуйте `Авто`;
-- если YouTube просит авторизацию, используйте `cookies.txt`.
-
-## Почему для качества выше 360p нужно объединение дорожек
-
-YouTube часто отдаёт:
-- `360p` как единый файл с видео и аудио;
-- `720p`, `1080p` и выше как отдельные дорожки.
-
-Поэтому helper:
-1. скачивает видеодорожку;
-2. скачивает аудиодорожку;
-3. если аудио недоступно, пробует запасной сценарий через `360p`;
-4. объединяет всё встроенным `ffmpeg`;
-5. удаляет временные файлы.
-
-## Типичные ошибки
-
-### `Локальное приложение не отвечает`
-Запусти:
-
-```text
-run_helper.cmd
-```
-
-или собранный `YouTubeDownloaderHelper.exe`.
-
-### `YouTube запросил cookies`
-Открой настройки helper и:
-- включи cookies из браузера;
-- или укажи путь к `cookies.txt`.
-
-### `Не удалось подготовить встроенный ffmpeg`
-Если запускаешь из исходников:
-1. снова запусти `run_helper.cmd`;
-2. проверь, что зависимости из `app/helper/requirements.txt` установились без ошибок.
-
-Если запускаешь собранный `.exe`, пересобери helper или используй уже готовую папку `dist`.
-
-### `Открой страницу YouTube-видео`
-Popup открыт не на вкладке вида:
-
-```text
-https://www.youtube.com/watch?v=...
-```
-
-При этом список загрузок всё равно работает, даже если активная вкладка не YouTube.
-
-## Полезные пути
-
-```text
-%LOCALAPPDATA%\YouTubeDownloader\config.json
-%LOCALAPPDATA%\YouTubeDownloader\logs\app.log
-%LOCALAPPDATA%\YouTubeDownloader\temp
-```
-
-## Ручной запуск для диагностики
-
-```powershell
-py -3.11 -m pip install -r app\helper\requirements.txt
-py -3.11 -m app.helper.yt_helper --healthcheck
-py -3.11 -m app.helper.yt_helper --server-only
-```
-
-## Сборка standalone helper в `.exe`
-
-```powershell
-Set-Location app\helper
-.\build.ps1
-```
-
-Результат будет в:
-
-```text
-app\helper\dist\YouTubeDownloaderHelper\
-```
-
-## Ограничение по автоустановке расширения
-
-Полностью бесшовная автоустановка расширения в обычный Chrome / Edge / Яндекс Браузер без магазина или policy-install обычно невозможна.
-
-Поэтому сейчас:
-- helper можно упаковать в `.exe`;
-- расширение подключается как unpacked extension в dev-режиме.

@@ -1,7 +1,46 @@
-﻿.venv/
+# Python
 __pycache__/
-*.pyc
-*.log
-dist/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Local environments
+.venv/
+.runtime/
+
+# Local runtime data
+.local-helper-data/
+.test-downloads/
+logs/
+temp/
+downloads/
+app/helper/runtime/
+
+# Build artifacts
 build/
+dist/
+app/helper/build/
 app/helper/dist/
+*.spec.bak
+
+# Binaries / archives
+bin/
+*.exe
+*.msi
+*.zip
+*.7z
+*.part
+*.crdownload
+
+# Editors / OS
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Secrets / env
+.env
+.env.*

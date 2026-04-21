@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -58,18 +59,19 @@ class _RequestHandler(BaseHTTPRequestHandler):
             job_id = parsed.path.rsplit("/", 1)[-1]
             job = self.server.app_context.download_manager.get_job(job_id)
             if job is None:
-                self._write_json({"error": "Загрузка не найдена."}, status=HTTPStatus.NOT_FOUND)
+                self._write_json({"error": "Download was not found."}, status=HTTPStatus.NOT_FOUND)
                 return
             self._write_json(job)
             return
         if parsed.path == "/settings":
-            self._write_static("settings.html", "text/html; charset=utf-8")
+            self._write_static("settings.html")
             return
-        if parsed.path == "/assets/settings.css":
-            self._write_static("settings.css", "text/css; charset=utf-8")
+        if parsed.path.startswith("/assets/"):
+            relative_name = parsed.path.removeprefix("/assets/")
+            self._write_static(relative_name)
             return
 
-        self._write_json({"error": "Маршрут не найден."}, status=HTTPStatus.NOT_FOUND)
+        self._write_json({"error": "Route was not found."}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
@@ -91,22 +93,22 @@ class _RequestHandler(BaseHTTPRequestHandler):
                 self._write_json(
                     {
                         "ok": True,
-                        "message": "Настройки сохранены",
+                        "message": "Settings saved.",
                         "settings": updated.to_dict(),
                     }
                 )
                 return
             if parsed.path == "/api/actions/open-downloads":
                 self.server.app_context.open_downloads()
-                self._write_json({"ok": True, "message": "Папка загрузок открыта"})
+                self._write_json({"ok": True, "message": "Downloads folder opened."})
                 return
             if parsed.path == "/api/actions/open-logs":
                 self.server.app_context.open_logs()
-                self._write_json({"ok": True, "message": "Папка логов открыта"})
+                self._write_json({"ok": True, "message": "Logs folder opened."})
                 return
         except KeyError as error:
             self._write_json(
-                {"error": f"Не хватает поля: {error}."},
+                {"error": f"Missing required field: {error}."},
                 status=HTTPStatus.BAD_REQUEST,
             )
             return
@@ -117,14 +119,14 @@ class _RequestHandler(BaseHTTPRequestHandler):
             self._write_json({"error": str(error)}, status=HTTPStatus.BAD_REQUEST)
             return
         except Exception as error:  # pragma: no cover
-            self.server.app_context.logger.exception("Ошибка API", error)
+            self.server.app_context.logger.exception("API error", error)
             self._write_json(
-                {"error": "Внутренняя ошибка helper-приложения."},
+                {"error": "Internal helper application error."},
                 status=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
             return
 
-        self._write_json({"error": "Маршрут не найден."}, status=HTTPStatus.NOT_FOUND)
+        self._write_json({"error": "Route was not found."}, status=HTTPStatus.NOT_FOUND)
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
         return
@@ -157,18 +159,20 @@ class _RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _write_static(self, filename: str, content_type: str) -> None:
-        path = STATIC_ROOT / filename
+    def _write_static(self, filename: str) -> None:
+        safe_name = Path(filename).name
+        path = STATIC_ROOT / safe_name
         if not path.exists():
             self._write_json(
-                {"error": "Статический файл не найден."},
+                {"error": "Static asset was not found."},
                 status=HTTPStatus.NOT_FOUND,
             )
             return
 
+        content_type, _ = mimetypes.guess_type(path.name)
         body = path.read_bytes()
         self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Type", content_type or "application/octet-stream")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
