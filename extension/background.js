@@ -3,6 +3,7 @@ importScripts("i18n.js");
 const HELPER_BASE = "http://127.0.0.1:45719";
 const TRACKED_DOWNLOADS_KEY = "trackedDownloads";
 const REFRESH_INTERVAL_MS = 1500;
+const FINISHED_JOB_TTL_MS = 1000 * 60 * 60 * 12;
 const NOTIFICATION_ICON = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#cb5b2d"/><stop offset="1" stop-color="#f28d35"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="#1d231d"/><path d="M64 24v46.5" stroke="url(#g)" stroke-width="12" stroke-linecap="round"/><path d="M44 53l20 20 20-20" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><rect x="28" y="88" width="72" height="12" rx="6" fill="#f6efe6"/></svg>'
 )}`;
@@ -65,7 +66,7 @@ async function updateHelperSettings(patch) {
 
 async function readTrackedDownloads() {
   const stored = await chrome.storage.local.get(TRACKED_DOWNLOADS_KEY);
-  return Array.isArray(stored[TRACKED_DOWNLOADS_KEY]) ? stored[TRACKED_DOWNLOADS_KEY] : [];
+  return pruneTrackedDownloads(Array.isArray(stored[TRACKED_DOWNLOADS_KEY]) ? stored[TRACKED_DOWNLOADS_KEY] : []);
 }
 
 async function writeTrackedDownloads(jobs) {
@@ -82,6 +83,29 @@ async function writeTrackedDownloads(jobs) {
 
 function isActiveState(state) {
   return state === "queued" || state === "running" || state === "downloading";
+}
+
+function getUpdatedAtTimestamp(job) {
+  const parsed = Date.parse(job?.updated_at || job?.created_at || "");
+  return Number.isFinite(parsed) ? parsed : Date.now();
+}
+
+function pruneTrackedDownloads(jobs) {
+  const now = Date.now();
+  return jobs.filter((job) => {
+    if (isActiveState(job.state)) {
+      return true;
+    }
+    return now - getUpdatedAtTimestamp(job) <= FINISHED_JOB_TTL_MS;
+  });
+}
+
+function isMissingJobError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  return (
+    message.includes("download was not found") ||
+    message.includes("загрузка не найдена")
+  );
 }
 
 function upsertTrackedJob(jobs, job) {
@@ -132,13 +156,17 @@ async function createCompletionNotification(job, settings) {
     ? await t("helper_completed_file", { path: job.file_path })
     : await t("helper_completed_generic", { label: job.option_label || (await t("job_default_format")) });
 
-  await chrome.notifications.create(`yt-helper-${job.job_id}`, {
-    type: "basic",
-    iconUrl: NOTIFICATION_ICON,
-    title,
-    message,
-    priority: 2,
-  });
+  try {
+    await chrome.notifications.create(`yt-helper-${job.job_id}`, {
+      type: "basic",
+      iconUrl: NOTIFICATION_ICON,
+      title,
+      message,
+      priority: 2,
+    });
+  } catch (error) {
+    console.warn("Notification error", error);
+  }
 }
 
 async function refreshTrackedDownloads() {
@@ -177,6 +205,11 @@ async function refreshTrackedDownloads() {
       changed = changed || JSON.stringify(updatedJob) !== JSON.stringify(job);
       refreshedJobs.push(updatedJob);
     } catch (error) {
+      if (isMissingJobError(error)) {
+        changed = true;
+        continue;
+      }
+
       refreshedJobs.push({
         ...job,
         state: "failed",
@@ -187,7 +220,8 @@ async function refreshTrackedDownloads() {
     }
   }
 
-  return changed ? writeTrackedDownloads(refreshedJobs) : refreshedJobs;
+  const prunedJobs = pruneTrackedDownloads(refreshedJobs);
+  return changed || prunedJobs.length !== refreshedJobs.length ? writeTrackedDownloads(prunedJobs) : prunedJobs;
 }
 
 async function ensureRefreshLoop() {

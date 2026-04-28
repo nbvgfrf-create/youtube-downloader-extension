@@ -10,9 +10,6 @@ const toastNode = document.getElementById("toast");
 const autostartToggle = document.getElementById("autostartToggle");
 const autostartTitleNode = document.getElementById("autostartTitle");
 const autostartHintNode = document.getElementById("autostartHint");
-const languageSelect = document.getElementById("languageSelect");
-const languageTitleNode = document.getElementById("languageTitle");
-const languageHintNode = document.getElementById("languageHint");
 const popupTitleNode = document.getElementById("popupTitle");
 const popupSubtitleNode = document.getElementById("popupSubtitle");
 const downloadsTitleNode = document.getElementById("downloadsTitle");
@@ -73,8 +70,6 @@ function applyStaticTexts() {
   refreshButton.textContent = t("btn_refresh");
   settingsButton.textContent = t("btn_settings");
   downloadsTitleNode.textContent = t("downloads_title");
-  languageTitleNode.textContent = t("language_label");
-  languageHintNode.textContent = t("language_hint");
 
   if (!helperStateNode.textContent.trim()) {
     helperStateNode.textContent = t("helper_checking");
@@ -87,22 +82,6 @@ function applyStaticTexts() {
   }
   if (!trackedJobs.length) {
     downloadsHintNode.textContent = t("downloads_idle");
-  }
-}
-
-function renderLanguageSelect() {
-  const localeNames = Object.entries(YTDI18N.locales).map(([code, payload]) => ({
-    code,
-    name: payload.language_name || code,
-  }));
-
-  languageSelect.innerHTML = "";
-  for (const item of localeNames) {
-    const option = document.createElement("option");
-    option.value = item.code;
-    option.textContent = item.name;
-    option.selected = item.code === currentLocale;
-    languageSelect.appendChild(option);
   }
 }
 
@@ -272,7 +251,7 @@ async function loadSettings() {
   try {
     settingsState = await sendMessage({ type: "GET_SETTINGS" });
     currentLocale = YTDI18N.normalizeLocale(settingsState.language || "ru");
-    renderLanguageSelect();
+    await persistUiLanguage(currentLocale);
     applyStaticTexts();
     renderAutostart();
   } catch (error) {
@@ -371,35 +350,6 @@ autostartToggle.addEventListener("change", async () => {
   }
 });
 
-languageSelect.addEventListener("change", async () => {
-  const nextLocale = YTDI18N.normalizeLocale(languageSelect.value);
-  languageSelect.disabled = true;
-  try {
-    const result = await sendMessage({
-      type: "UPDATE_SETTINGS",
-      patch: {
-        language: nextLocale,
-      },
-    });
-    settingsState = result.settings;
-    currentLocale = YTDI18N.normalizeLocale(result.settings.language || nextLocale);
-    await persistUiLanguage(currentLocale);
-    renderLanguageSelect();
-    applyStaticTexts();
-    renderTrackedDownloads();
-    renderOptions();
-    renderAutostart();
-    await refreshTrackedDownloads();
-    showToast(`${t("language_label")}: ${YTDI18N.locales[currentLocale].language_name}`, "ok");
-  } catch (error) {
-    languageSelect.value = currentLocale;
-    showToast(error.message, "error");
-  } finally {
-    languageSelect.disabled = false;
-  }
-});
-
 applyStaticTexts();
-renderLanguageSelect();
 startRefreshLoop();
 loadFormats();

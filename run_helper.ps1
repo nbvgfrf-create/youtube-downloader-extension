@@ -7,11 +7,19 @@ function Write-Step {
 
 function Get-PythonLauncher {
     if (Get-Command py -ErrorAction SilentlyContinue) {
-        return @{ Kind = "py"; Command = "py" }
+        & py -3.11 -c "import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)" *> $null
+        if ($LASTEXITCODE -eq 0) {
+            return @{ Kind = "py"; Command = "py"; Args = @("-3.11") }
+        }
+
+        & py -c "import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)" *> $null
+        if ($LASTEXITCODE -eq 0) {
+            return @{ Kind = "py"; Command = "py"; Args = @() }
+        }
     }
 
     if (Get-Command python -ErrorAction SilentlyContinue) {
-        return @{ Kind = "python"; Command = "python" }
+        return @{ Kind = "python"; Command = "python"; Args = @() }
     }
 
     return $null
@@ -20,11 +28,12 @@ function Get-PythonLauncher {
 function Test-Python311 {
     param(
         [string]$LauncherKind,
-        [string]$LauncherCommand
+        [string]$LauncherCommand,
+        [string[]]$LauncherArgs = @()
     )
 
     if ($LauncherKind -eq "py") {
-        & $LauncherCommand -3.11 -c "import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)" *> $null
+        & $LauncherCommand @LauncherArgs -c "import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)" *> $null
         return ($LASTEXITCODE -eq 0)
     }
 
@@ -34,27 +43,36 @@ function Test-Python311 {
 
 function Ensure-PythonInstalled {
     $launcher = Get-PythonLauncher
-    if ($launcher -and (Test-Python311 -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command)) {
+    if ($launcher -and (Test-Python311 -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command -LauncherArgs $launcher.Args)) {
         return $launcher
     }
 
+    $installed = $false
     $winget = Get-Command winget -ErrorAction SilentlyContinue
-    if (-not $winget) {
-        throw "Python 3.11 was not found and winget is not available. Install Python 3.11 manually, then run run_helper.cmd again."
+    if ($winget) {
+        Write-Step "Python 3.11 was not found. Trying to install it with winget"
+        & $winget.Source install --id Python.Python.3.11 --exact --accept-package-agreements --accept-source-agreements
+        $installed = ($LASTEXITCODE -eq 0)
     }
 
-    Write-Step "Python 3.11 was not found. Trying to install it with winget"
-    & $winget.Source install --id Python.Python.3.11 --exact --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -ne 0) {
-        throw "Python installation through winget failed. Install Python 3.11 manually, then run run_helper.cmd again."
+    if (-not $installed) {
+        Write-Step "winget installation was not available or failed. Trying the official Python installer"
+        $pythonVersion = "3.11.9"
+        $installerName = if ([Environment]::Is64BitOperatingSystem) { "python-$pythonVersion-amd64.exe" } else { "python-$pythonVersion.exe" }
+        $installerUrl = "https://www.python.org/ftp/python/$pythonVersion/$installerName"
+        $installerPath = Join-Path $env:TEMP $installerName
+
+        Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+        Start-Process -FilePath $installerPath -ArgumentList "/quiet", "InstallAllUsers=0", "PrependPath=1", "Include_pip=1", "Include_test=0" -Wait
+        Remove-Item -LiteralPath $installerPath -Force -ErrorAction SilentlyContinue
     }
 
     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + `
         [System.Environment]::GetEnvironmentVariable("PATH", "User")
 
     $launcher = Get-PythonLauncher
-    if (-not $launcher -or -not (Test-Python311 -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command)) {
-        throw "Python 3.11 looks installed but was not found in PATH yet. Run run_helper.cmd one more time."
+    if (-not $launcher -or -not (Test-Python311 -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command -LauncherArgs $launcher.Args)) {
+        throw "Python 3.11 or newer could not be prepared automatically. Install Python 3.11+ manually from python.org, then run run_helper.cmd again."
     }
 
     return $launcher
@@ -64,12 +82,13 @@ function New-Venv {
     param(
         [string]$LauncherKind,
         [string]$LauncherCommand,
+        [string[]]$LauncherArgs,
         [string]$Target
     )
 
     Write-Step "Creating the local Python environment"
     if ($LauncherKind -eq "py") {
-        & $LauncherCommand -3.11 -m venv $Target
+        & $LauncherCommand @LauncherArgs -m venv $Target
     } else {
         & $LauncherCommand -m venv $Target
     }
@@ -134,7 +153,7 @@ try {
     $launcher = Ensure-PythonInstalled
 
     if (-not (Test-Path $pythonExe)) {
-        New-Venv -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command -Target $venvRoot
+        New-Venv -LauncherKind $launcher.Kind -LauncherCommand $launcher.Command -LauncherArgs $launcher.Args -Target $venvRoot
     }
 
     if (-not (Test-Path $pythonExe)) {

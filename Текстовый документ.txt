@@ -1,0 +1,6 @@
+1) питон сам не скачивается 
+2) если другая версия - не работает(например 1 13)
+Helper startup failed:
+No suitable Python runtime found
+
+Press Enter to close this window

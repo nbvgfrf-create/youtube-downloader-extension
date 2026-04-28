@@ -78,7 +78,7 @@ run_helper.cmd
 ### What the bootstrap does
 
 1. Looks for Python 3.11.
-2. If Python is missing, tries to install it through `winget`.
+2. If Python is missing, first tries `winget`, then falls back to the official Python installer from python.org.
 3. Creates `.venv`.
 4. Installs dependencies from `app/helper/requirements.txt`.
 5. Warms up the built-in `ffmpeg`.

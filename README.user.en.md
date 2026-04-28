@@ -23,12 +23,14 @@ Download the project and unpack it into a normal folder on your computer.
 
 What happens next:
 - if Python is already installed, setup continues automatically;
-- if Python is missing, the script tries to install it automatically;
+- if Python is missing, the script first tries `winget`, then the official Python installer from python.org;
 - then the helper installs the required Python packages;
 - then it prepares the built-in `ffmpeg`;
 - after that, the helper starts in the background.
 
 If everything works, you can close the window.
+
+If Windows blocks both automatic methods, install Python 3.11 manually and run `run_helper.cmd` again.
 
 ## How to install the browser extension
 
@@ -85,8 +87,8 @@ After that:
 ## How to change the language
 
 1. Click the extension icon.
-2. Find the `Language` field.
-3. Choose `Русский` or `English`.
+2. Click `Settings`.
+3. On the full helper settings page, choose `Русский` or `English`.
 
 The popup, the YouTube buttons, and the helper settings page use the selected language.
 
@@ -123,6 +125,8 @@ again.
 1. Click the extension icon.
 2. Click `Settings`.
 3. In helper settings, enable cookies or provide `cookies.txt`.
+
+Some YouTube videos require cookies even when other videos download normally. This is expected.
 
 ### Yandex Browser
 

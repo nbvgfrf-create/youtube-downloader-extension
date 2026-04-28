@@ -25,7 +25,7 @@ from .models import FormatOption
 
 
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-AUTO_BROWSERS = ("edge", "chrome", "firefox", "brave", "opera", "chromium", "vivaldi")
+AUTO_BROWSERS = ("edge", "chrome", "firefox", "brave", "opera", "chromium")
 AUTH_HINTS = (
     "sign in to confirm you're not a bot",
     "sign in to confirm you’re not a bot",
@@ -503,6 +503,13 @@ class YtDlpService:
         )
         return strategies
 
+    def _looks_like_missing_browser_cookie_store(self, error: Exception) -> bool:
+        message = str(error).lower()
+        return (
+            ("could not find" in message and "cookies database" in message)
+            or "failed to decrypt with dpapi" in message
+        )
+
     def _run_with_cookie_strategies(
         self,
         *,
@@ -519,7 +526,8 @@ class YtDlpService:
                 self._logger.info(f"{action_name}: пробуем стратегию {strategy.label} для {url}")
                 return operation(strategy.params)
             except Exception as error:
-                last_error = error
+                if not self._looks_like_missing_browser_cookie_store(error) or last_error is None:
+                    last_error = error
                 self._logger.exception(
                     f"{action_name}: стратегия {strategy.label} завершилась ошибкой",
                     error if isinstance(error, Exception) else Exception(str(error)),
@@ -547,6 +555,11 @@ class YtDlpService:
             return (
                 "Не удалось прочитать cookies из браузера. Попробуй указать cookies.txt в настройках helper "
                 "или запустить helper из той же учётной записи Windows, где открыт браузер."
+            )
+        if "cookies database" in lowered and "could not find" in lowered:
+            return (
+                "Не удалось найти cookies в выбранном браузере. Попробуй другой браузер в настройках helper "
+                "или укажи cookies.txt."
             )
         if "sign in to confirm you're not a bot" in lowered or "sign in to confirm you’re not a bot" in lowered:
             return (
