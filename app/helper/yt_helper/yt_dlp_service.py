@@ -489,7 +489,10 @@ class YtDlpService:
             return [CookieStrategy("cookies file", {"cookiefile": str(cookie_path)})]
 
         if source == "browser":
-            return [CookieStrategy(f"browser:{browser}", {"cookiesfrombrowser": (browser, profile, None, None)})]
+            return [
+                CookieStrategy(f"browser:{browser}", {"cookiesfrombrowser": (browser, profile, None, None)}),
+                CookieStrategy("без cookies", {}),
+            ]
 
         ordered = [browser, *AUTO_BROWSERS]
         unique_browsers = list(dict.fromkeys(item for item in ordered if item))
@@ -553,8 +556,8 @@ class YtDlpService:
 
         if "failed to decrypt with dpapi" in lowered or "[errno 22] invalid argument" in lowered:
             return (
-                "Не удалось прочитать cookies из браузера. Попробуй указать cookies.txt в настройках helper "
-                "или запустить helper из той же учётной записи Windows, где открыт браузер."
+                "Не удалось прочитать cookies из браузера. Попробуй закрыть браузер и запустить helper не от имени администратора, "
+                "либо переключись на Авто или укажи cookies.txt в настройках helper."
             )
         if "cookies database" in lowered and "could not find" in lowered:
             return (
